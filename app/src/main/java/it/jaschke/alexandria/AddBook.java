@@ -30,9 +30,6 @@ import it.jaschke.alexandria.services.DownloadImage;
 public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // use a compound button so either checkbox or switch widgets work.
-//    private CheckBox autoFocus;
-//    private CheckBox useFlash;
-    private TextView statusMessage;
     private TextView barcodeValue;
 
     private static final int RC_BARCODE_CAPTURE = 9001;
@@ -65,29 +62,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
         rootView = inflater.inflate(R.layout.fragment_add_book, container, false);
         ean = (EditText) rootView.findViewById(R.id.ean);
-
-        statusMessage = (TextView) getActivity().findViewById(R.id.status_message);
-        barcodeValue = (TextView) getActivity().findViewById(R.id.barcode_value);
-
-//        autoFocus = (CheckBox) getActivity().findViewById(R.id.auto_focus);
-//        useFlash = (CheckBox) getActivity().findViewById(R.id.use_flash);
-
-//        if (null != autoFocus) {
-//            try {
-//                autoFocus.setChecked(true);
-//            }catch (NullPointerException e){
-//                e.printStackTrace();
-//                Log.v(TAG, "autoFocus view is null. Can't change its value.");
-//            }
-//        } else {
-//            rootView.findViewById(R.id.auto_focus).setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    Log.v(TAG, "Value of autofocus is = " + autoFocus.toString()
-//                            + " and value of isClicked() is = " + autoFocus.isChecked());
-//                }
-//            });
-//        }
+        barcodeValue = (TextView) rootView.findViewById(R.id.barcode_value);
 
         ean.addTextChangedListener(new TextWatcher() {
             @Override
@@ -132,7 +107,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
                 Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
                 intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
-                intent.putExtra(BarcodeCaptureActivity.UseFlash, false);
+                intent.putExtra(BarcodeCaptureActivity.UseFlash, true);
 
                 startActivityForResult(intent, RC_BARCODE_CAPTURE);
 
@@ -274,15 +249,14 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             if (resultCode == CommonStatusCodes.SUCCESS) {
                 if (data != null) {
                     Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    statusMessage.setText(R.string.barcode_success);
                     barcodeValue.setText(barcode.displayValue);
+                    ean.setText(barcode.displayValue);
                     Log.d(TAG_TWO, "Barcode read: " + barcode.displayValue);
                 } else {
-                    statusMessage.setText(R.string.barcode_failure);
                     Log.d(TAG_TWO, "No barcode captured, intent data is null");
                 }
             } else {
-                statusMessage.setText(String.format(getString(R.string.barcode_error),
+                Log.d(TAG_TWO, String.format(getString(R.string.barcode_error),
                         CommonStatusCodes.getStatusCodeString(resultCode)));
             }
         } else {
