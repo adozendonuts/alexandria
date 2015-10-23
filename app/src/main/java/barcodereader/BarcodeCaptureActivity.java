@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -90,6 +92,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay<BarcodeGraphic>) findViewById(R.id.graphicOverlay);
+
 
         // read parameters from the intent used to launch the activity.
         boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
@@ -157,13 +160,34 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
      * Creates and starts the camera.  Note that this uses a higher resolution in comparison
      * to other detection examples to enable the barcode detector to detect small barcodes
      * at long distances.
-     *
+     * <p/>
      * Suppressing InlinedApi since there is a check that the minimum version is met before using
      * the constant.
      */
     @SuppressLint("InlinedApi")
     private void createCameraSource(boolean autoFocus, boolean useFlash) {
         Context context = getApplicationContext();
+        int width;
+        int height;
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD) {
+            int orientation = getResources().getConfiguration().orientation;
+            Display display = getWindowManager().getDefaultDisplay();
+            width = display.getWidth();
+            height = display.getHeight();
+
+            // swap values for width and height based on orientation
+            if (orientation == Configuration.ORIENTATION_PORTRAIT){
+                int temp = height;
+                height = width;
+                width = temp;
+            }
+//            Log.v("CREATECAMERASOURCE", Integer.toString(width) + " " + Integer.toString(height));
+        } else {
+            //let the google algo figure it out
+            width = mCameraSource.getPreviewSize().getWidth();
+            height = mCameraSource.getPreviewSize().getWidth();
+        }
 
         // A barcode detector is created to track barcodes.  An associated multi-processor instance
         // is set to receive the barcode detection results, track the barcodes, and maintain
@@ -204,9 +228,11 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
         // Creates and starts the camera.  Note that this uses a higher resolution in comparison
         // to other detection examples to enable the barcode detector to detect small barcodes
         // at long distances.
+
         CameraSource.Builder builder = new CameraSource.Builder(getApplicationContext(), barcodeDetector)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
-                .setRequestedPreviewSize(1600, 1024)
+                .setRequestedPreviewSize(width, height)
+//                .setRequestedPreviewSize(1600, 1024)
                 .setRequestedFps(15.0f);
 
         // make sure that auto focus is an available option
@@ -281,7 +307,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Camera permission granted - initialize the camera source");
             // we have permission, so create the camerasource
-            boolean autoFocus = getIntent().getBooleanExtra(AutoFocus,false);
+            boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
             boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
             createCameraSource(autoFocus, useFlash);
             return;
@@ -349,16 +375,14 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
                 data.putExtra(BarcodeObject, barcode);
                 setResult(CommonStatusCodes.SUCCESS, data);
                 finish();
-            }
-            else {
+            } else {
                 Log.d(TAG, "barcode data is null");
             }
-        }
-        else {
+        } else {
             //autofocus
             mCameraSource.cancelAutoFocus();
             mCameraSource.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            Log.d(TAG,"no barcode detected");
+            Log.d(TAG, "no barcode detected");
         }
         return barcode != null;
     }

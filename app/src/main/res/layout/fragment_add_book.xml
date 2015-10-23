@@ -40,17 +40,17 @@
         </LinearLayout>
 
 
-        <TextView
-            android:id="@+id/barcode_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignEnd="@+id/eancontainer"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignRight="@+id/eancontainer"
-            android:layout_below="@+id/eancontainer"
-            android:layout_marginTop="110dp"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+        <!--<TextView-->
+            <!--android:id="@+id/barcode_value"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignEnd="@+id/eancontainer"-->
+            <!--android:layout_alignParentLeft="true"-->
+            <!--android:layout_alignParentStart="true"-->
+            <!--android:layout_alignRight="@+id/eancontainer"-->
+            <!--android:layout_below="@+id/eancontainer"-->
+            <!--android:layout_marginTop="110dp"-->
+            <!--android:textAppearance="?android:attr/textAppearanceLarge" />-->
 
         <TextView
             android:id="@+id/bookTitle"

@@ -1,8 +1,10 @@
 package it.jaschke.alexandria;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -11,12 +13,14 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
@@ -30,7 +34,6 @@ import it.jaschke.alexandria.services.DownloadImage;
 public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // use a compound button so either checkbox or switch widgets work.
-    private TextView barcodeValue;
 
     private static final int RC_BARCODE_CAPTURE = 9001;
 
@@ -62,7 +65,6 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
         rootView = inflater.inflate(R.layout.fragment_add_book, container, false);
         ean = (EditText) rootView.findViewById(R.id.ean);
-        barcodeValue = (TextView) rootView.findViewById(R.id.barcode_value);
 
         ean.addTextChangedListener(new TextWatcher() {
             @Override
@@ -105,19 +107,18 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 // are using an external app.
                 //when you're done, remove the toast below.
 
-                Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
-                intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
-                intent.putExtra(BarcodeCaptureActivity.UseFlash, true);
+                if (hasInternet(getActivity())) {
+                    Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
+                    intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
+                    intent.putExtra(BarcodeCaptureActivity.UseFlash, false);
 
-                startActivityForResult(intent, RC_BARCODE_CAPTURE);
-
-//                Context context = getActivity();
-//                CharSequence text = "This button should let you scan a book for its barcode!";
-//                int duration = Toast.LENGTH_SHORT;
-//
-//                Toast toast = Toast.makeText(context, text, duration);
-//                toast.show();
-
+                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
+                } else {
+                    Toast toast = Toast.makeText(getActivity(),
+                            "No internet!", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+                    toast.show();
+                }
             }
         });
 
@@ -183,10 +184,22 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         ((TextView) rootView.findViewById(R.id.bookSubTitle)).setText(bookSubTitle);
 
         String authors = data.getString(data.getColumnIndex(AlexandriaContract.AuthorEntry.AUTHOR));
-        String[] authorsArr = authors.split(",");
-        ((TextView) rootView.findViewById(R.id.authors)).setLines(authorsArr.length);
-        ((TextView) rootView.findViewById(R.id.authors)).setText(authors.replace(",", "\n"));
+        String[] authorsArr;
+        //// TODO: 10/18/2015 FIGURE OUT WHY AUTHORS IS NULL 
+        if (null != authors) {
+            Log.v(TAG, authors);
+            if (authors.contains(",")) {
+                authorsArr = authors.split(",");
+                ((TextView) rootView.findViewById(R.id.authors)).setLines(authorsArr.length);
+                ((TextView) rootView.findViewById(R.id.authors)).setText(authors.replace(",", "\n"));
+            } else {
+                ((TextView) rootView.findViewById(R.id.authors)).setLines(1);
+                ((TextView) rootView.findViewById(R.id.authors)).setText(authors);
+            }
+        }
+
         String imgUrl = data.getString(data.getColumnIndex(AlexandriaContract.BookEntry.IMAGE_URL));
+
         if (Patterns.WEB_URL.matcher(imgUrl).matches()) {
             new DownloadImage((ImageView) rootView.findViewById(R.id.bookCover)).execute(imgUrl);
             rootView.findViewById(R.id.bookCover).setVisibility(View.VISIBLE);
@@ -249,7 +262,6 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             if (resultCode == CommonStatusCodes.SUCCESS) {
                 if (data != null) {
                     Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    barcodeValue.setText(barcode.displayValue);
                     ean.setText(barcode.displayValue);
                     Log.d(TAG_TWO, "Barcode read: " + barcode.displayValue);
                 } else {
@@ -262,5 +274,15 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    // determines whether or not an internet connection exists
+    public static Boolean hasInternet(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm.getActiveNetworkInfo() == null) {
+            return false;
+        }
+        return true;
     }
 }

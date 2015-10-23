@@ -92,6 +92,7 @@ public class CameraSourcePreview extends ViewGroup {
                 Size size = mCameraSource.getPreviewSize();
                 int min = Math.min(size.getWidth(), size.getHeight());
                 int max = Math.max(size.getWidth(), size.getHeight());
+                Log.d("MINMAX", Integer.toString(min) + " " + Integer.toString(max));
                 if (isPortraitMode()) {
                     // Swap width and height sizes when in portrait, since it will be rotated by
                     // 90 degrees
@@ -127,6 +128,20 @@ public class CameraSourcePreview extends ViewGroup {
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         }
     }
+
+//    @Override
+//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//        // We purposely disregard child measurements because act as a
+//        // wrapper to a SurfaceView that centers the camera preview instead
+//        // of stretching it.
+//        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+//        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+//        setMeasuredDimension(width, height);
+//
+////        if (mCameraSource.mSupportedPreviewSizes != null) {
+////            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+////        }
+//    }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
