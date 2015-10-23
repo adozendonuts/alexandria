@@ -39,6 +39,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -93,10 +94,21 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay<BarcodeGraphic>) findViewById(R.id.graphicOverlay);
 
-
         // read parameters from the intent used to launch the activity.
-        boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
-        boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
+        final boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
+        final boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
+
+        Button flash = (Button) findViewById(R.id.camera_flash);
+        flash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mCameraSource.getFlashMode() == Camera.Parameters.FLASH_MODE_OFF) {
+                    mCameraSource.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                } else {
+                    mCameraSource.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                }
+            }
+        });
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -177,7 +189,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
             height = display.getHeight();
 
             // swap values for width and height based on orientation
-            if (orientation == Configuration.ORIENTATION_PORTRAIT){
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
                 int temp = height;
                 height = width;
                 width = temp;

@@ -13,4 +13,8 @@
          https://github.com/googlesamples/android-vision/blob/master/visionSamples/barcode-reader-->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- Barcode Reader dimensions-->
+    <dimen name="flash_button_bottom_margin">64dp</dimen>
+    <dimen name="flash_button_text_size">24dp</dimen>
 </resources>
