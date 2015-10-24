@@ -102,7 +102,8 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
         flash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mCameraSource.getFlashMode() == Camera.Parameters.FLASH_MODE_OFF) {
+                Log.v("CAMERAFLASH", mCameraSource.getFlashMode().toString());
+                if (mCameraSource.getFlashMode() != Camera.Parameters.FLASH_MODE_TORCH) {
                     mCameraSource.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                 } else {
                     mCameraSource.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);

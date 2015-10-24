@@ -42,11 +42,11 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     private final int LOADER_ID = 1;
     private View rootView;
     private final String EAN_CONTENT = "eanContent";
-    private static final String SCAN_FORMAT = "scanFormat";
-    private static final String SCAN_CONTENTS = "scanContents";
-
-    private String mScanFormat = "Format:";
-    private String mScanContents = "Contents:";
+//    private static final String SCAN_FORMAT = "scanFormat";
+//    private static final String SCAN_CONTENTS = "scanContents";
+//
+//    private String mScanFormat = "Format:";
+//    private String mScanContents = "Contents:";
 
 
     public AddBook() {
@@ -89,13 +89,21 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                     return;
                 }
                 //Once we have an ISBN, start a book intent
-                Intent bookIntent = new Intent(getActivity(), BookService.class);
-                bookIntent.putExtra(BookService.EAN, ean);
-                bookIntent.setAction(BookService.FETCH_BOOK);
-                getActivity().startService(bookIntent);
-                AddBook.this.restartLoader();
+
+                if (hasInternet(getActivity())) {
+                    Intent bookIntent = new Intent(getActivity(), BookService.class);
+                    bookIntent.putExtra(BookService.EAN, ean);
+                    bookIntent.setAction(BookService.FETCH_BOOK);
+                    getActivity().startService(bookIntent);
+                    AddBook.this.restartLoader();
+                } else {
+                    toastMessage(R.string.no_internet);
+                }
             }
         });
+        if (rootView.findViewById(R.id.book_cardview) != null) {
+            rootView.findViewById(R.id.book_cardview).setVisibility(View.INVISIBLE);
+        }
 
         rootView.findViewById(R.id.scan_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,10 +122,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
                     startActivityForResult(intent, RC_BARCODE_CAPTURE);
                 } else {
-                    Toast toast = Toast.makeText(getActivity(),
-                            "No internet!", Toast.LENGTH_SHORT);
-                    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-                    toast.show();
+                    toastMessage(R.string.no_internet);
                 }
             }
         });
@@ -185,7 +190,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
         String authors = data.getString(data.getColumnIndex(AlexandriaContract.AuthorEntry.AUTHOR));
         String[] authorsArr;
-        //// TODO: 10/18/2015 FIGURE OUT WHY AUTHORS IS NULL 
+        // separate authors by line if there are multiple names
         if (null != authors) {
             Log.v(TAG, authors);
             if (authors.contains(",")) {
@@ -207,6 +212,10 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
         String categories = data.getString(data.getColumnIndex(AlexandriaContract.CategoryEntry.CATEGORY));
         ((TextView) rootView.findViewById(R.id.categories)).setText(categories);
+
+        if (rootView.findViewById(R.id.book_cardview) != null) {
+            rootView.findViewById(R.id.book_cardview).setVisibility(View.VISIBLE);
+        }
 
         rootView.findViewById(R.id.save_button).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.delete_button).setVisibility(View.VISIBLE);
@@ -284,5 +293,13 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             return false;
         }
         return true;
+    }
+
+    //toast message builder
+    public void toastMessage(int resourceInt) {
+        Toast toast = Toast.makeText(getActivity(),
+                getString(resourceInt), Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+        toast.show();
     }
 }
